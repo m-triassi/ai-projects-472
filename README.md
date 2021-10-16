@@ -1,4 +1,4 @@
-# ai-projects-472
+# COMP 472 Mini Projects
 ## Team
 |Name |Github|
 |--|--|
