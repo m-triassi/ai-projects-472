@@ -16,5 +16,6 @@ You can also open the notebooks directly in [Google Colab](https://drive.google.
 
 
 ### Task 2:
-- Open the following link for Task 2:https://github.com/m-triassi/ai-projects-472/blob/main/Project1_task2.ipynb
+- Open the following link for Task 2
+  - [Github](https://github.com/m-triassi/ai-projects-472/blob/main/Project1_task2.ipynb)
 - Press the "Open in Colab" button. Press the "Runtime > Run all button" to run all the cells or Run cells indivdually at your leisure.
