@@ -11,7 +11,7 @@ class Game:
 	AI = 3
 
 	def __init__(self, recommend=True):
-		self.initialize_game(4)
+		self.initialize_game()
 		self.recommend = recommend
 
 	def initialize_game(self, n=3, b=None, s=3):
