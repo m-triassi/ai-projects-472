@@ -14,7 +14,7 @@ class Game:
 		self.initialize_game()
 		self.recommend = recommend
 
-	def initialize_game(self, n=3, b=None, s=3):
+	def initialize_game(self, n=7, b=None, s=3):
 		if b is None:
 			b = []
 
@@ -32,10 +32,13 @@ class Game:
 		self.player_turn = 'X'
 
 	def draw_board(self):
+		labels = range(0, self.n)
 		print()
+		print("  " + " ".join(map(str, labels)))
 		for y in range(0, self.n):
+			print(str(labels[y]) + " ", end='')
 			for x in range(0, self.n):
-				print(F'{self.current_state[x][y]}', end="")
+				print(F'{self.current_state[x][y]} ', end="")
 			print()
 		print()
 
@@ -245,7 +248,7 @@ class Game:
 			self.player_turn = 'X'
 		return self.player_turn
 
-	def minimax(self, max=False):
+	def minimax(self, max=False, depth=3):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
 		# -1 - win for 'X'
@@ -264,19 +267,23 @@ class Game:
 			return (1, x, y)
 		elif result == '.':
 			return (0, x, y)
+		if depth <= 0:
+			return (0, x, y)
+
+		depth -= 1
 		for i in range(0, self.n):
 			for j in range(0, self.n):
 				if self.current_state[i][j] == '.':
 					if max:
 						self.current_state[i][j] = 'O'
-						(v, _, _) = self.minimax(max=False)
+						(v, _, _) = self.minimax(max=False, depth=depth)
 						if v > value:
 							value = v
 							x = i
 							y = j
 					else:
 						self.current_state[i][j] = 'X'
-						(v, _, _) = self.minimax(max=True)
+						(v, _, _) = self.minimax(max=True, depth=depth)
 						if v < value:
 							value = v
 							x = i
@@ -284,7 +291,7 @@ class Game:
 					self.current_state[i][j] = '.'
 		return (value, x, y)
 
-	def alphabeta(self, alpha=-2, beta=2, max=False):
+	def alphabeta(self, alpha=-2, beta=2, max=False, depth=3):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
 		# -1 - win for 'X'
@@ -303,19 +310,23 @@ class Game:
 			return (1, x, y)
 		elif result == '.':
 			return (0, x, y)
+		if depth <= 0:
+			return (0, x, y)
+
+		depth -= 1
 		for i in range(0, self.n):
 			for j in range(0, self.n):
 				if self.current_state[i][j] == '.':
 					if max:
 						self.current_state[i][j] = 'O'
-						(v, _, _) = self.alphabeta(alpha, beta, max=False)
+						(v, _, _) = self.alphabeta(alpha, beta, max=False, depth=depth)
 						if v > value:
 							value = v
 							x = i
 							y = j
 					else:
 						self.current_state[i][j] = 'X'
-						(v, _, _) = self.alphabeta(alpha, beta, max=True)
+						(v, _, _) = self.alphabeta(alpha, beta, max=True, depth=depth)
 						if v < value:
 							value = v
 							x = i
