@@ -43,7 +43,7 @@ class Game:
 		print()
 
 	def is_valid(self, px, py):
-		if px < 0 or px > 2 or py < 0 or py > 2:
+		if px < 0 or px > self.n - 1 or py < 0 or py > self.n - 1:
 			return False
 		elif self.current_state[px][py] != '.':
 			return False
@@ -248,6 +248,38 @@ class Game:
 			self.player_turn = 'X'
 		return self.player_turn
 
+	def evaluate_state(self):
+		x, y = self.last_move
+		# Heuristic evaluation
+		# Heuristic 1: What is the count of the longest line making this line would make?
+		lines = []
+		lines.append(self.check_e(0, self.last_move) + self.check_w(0, self.last_move) + 1)
+		lines.append(self.check_n(0, self.last_move) + self.check_s(0, self.last_move) + 1)
+		lines.append(self.check_sw(0, self.last_move) + self.check_ne(0, self.last_move) + 1)
+		lines.append(self.check_se(0, self.last_move) + self.check_nw(0, self.last_move) + 1)
+		a = max(lines)/self.s
+
+		# Heuristic 2: How many free spaces are around the current move
+		# very verbose, but pretty fast...
+		b = x + 1 < self.n and self.current_state[x + 1][y] != "."
+		b += x - 1 >= 0 and self.current_state[x - 1][y] != "."
+		b += y + 1 < self.n and self.current_state[x][y + 1] != "."
+		b += y - 1 < self.n and self.current_state[x][y - 1] != "."
+		b += y + 1 < self.n and x + 1 < self.n and self.current_state[x + 1][y + 1] != "."
+		b += x - 1 >= 0 and y - 1 >= 0 and self.current_state[x - 1][y - 1] != "."
+		b += x - 1 >= 0 and y + 1 < self.n and self.current_state[x - 1][y + 1] != "."
+		b += y - 1 >= 0 and x + 1 < self.n and self.current_state[x + 1][y - 1] != "."
+
+		# Clamp heuristics to between 0 and 1
+		# This can only be as long as the win condition, thus divide by s
+		a = a/self.s
+		# There are only 8 spaces (maximum) around the current spot
+		b = b/8
+
+		# weight heuristic a higher than b to promote blocking
+		return (a + b)/2
+
+
 	def minimax(self, max=False, depth=3):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
@@ -256,8 +288,10 @@ class Game:
 		# 1  - loss for 'X'
 		# We're initially setting it to 2 or -2 as worse than the worst case:
 		value = 2
+		flip = 1
 		if max:
 			value = -2
+			flip = -1
 		x = None
 		y = None
 		result = self.is_end()
@@ -268,7 +302,8 @@ class Game:
 		elif result == '.':
 			return (0, x, y)
 		if depth <= 0:
-			return (0, x, y)
+			# Add Heuristic eval here?, constrain to [-1, 1]
+			return (self.evaluate_state() * flip, self.last_move[0], self.last_move[1])
 
 		depth -= 1
 		for i in range(0, self.n):
