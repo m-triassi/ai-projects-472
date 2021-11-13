@@ -23,7 +23,7 @@ class Game:
 		self.n = n
 		self.s = s
 		self.block_count = len(b)
-		self.block_symbol = "👎"
+		self.block_symbol = "🔲"
 		self.current_state = np.full((n, n), ".").tolist()
 		for block in b:
 			self.current_state[block[0]][block[1]] = self.block_symbol
@@ -70,12 +70,11 @@ class Game:
 		if py - 1 < 0:
 			return count
 
-		## Check its a block
+		## Check its a block / empty spot
 		if self.current_state[px][py - 1] == self.block_symbol or self.current_state[px][py - 1] == ".":
 			return count
 
-		## check its not same, the return none
-
+		## check its not same, then return count
 		## else it must be same so recurse count + 1
 		if self.current_state[px][py] != self.current_state[px][py - 1]:
 			return count
@@ -89,12 +88,11 @@ class Game:
 		if py + 1 >= self.n:
 			return count
 
-		## Check its a block
+		## Check its a block / empty spot
 		if self.current_state[px][py + 1] == self.block_symbol or self.current_state[px][py + 1] == ".":
 			return count
 
-		## check its not same, the return none
-
+		## check its not same, the return count
 		## else it must be same so recurse count + 1
 		if self.current_state[px][py] != self.current_state[px][py + 1]:
 			return count
@@ -108,12 +106,11 @@ class Game:
 		if px - 1 < 0:
 			return count
 
-		## Check its a block
+		## Check its a block / empty spot
 		if self.current_state[px - 1][py] == self.block_symbol or self.current_state[px - 1][py] == ".":
 			return count
 
-		## check its not same, the return none
-
+		## check its not same, the return count
 		## else it must be same so recurse count + 1
 		if self.current_state[px][py] != self.current_state[px - 1][py]:
 			return count
@@ -127,12 +124,11 @@ class Game:
 		if px + 1 >= self.n:
 			return count
 
-		## Check its a block
+		## Check its a block / empty spot
 		if self.current_state[px + 1][py] == self.block_symbol or self.current_state[px + 1][py] == ".":
 			return count
 
-		## check its not same, the return none
-
+		## check its not same, the return count
 		## else it must be same so recurse count + 1
 		if self.current_state[px][py] != self.current_state[px + 1][py]:
 			return count
@@ -146,12 +142,11 @@ class Game:
 		if px - 1 < 0 or py + 1 >= self.n:
 			return count
 
-		## Check its a block
+		## Check its a block / empty spot
 		if self.current_state[px - 1][py + 1] == self.block_symbol or self.current_state[px - 1][py + 1] == ".":
 			return count
 
-		## check its not same, the return none
-
+		## check its not same, the return count
 		## else it must be same so recurse count + 1
 		if self.current_state[px][py] != self.current_state[px - 1][py + 1]:
 			return count
@@ -165,12 +160,11 @@ class Game:
 		if px - 1 < 0 or py - 1 < 0:
 			return count
 
-		## Check its a block
+		## Check its a block / empty spot
 		if self.current_state[px - 1][py - 1] == self.block_symbol or self.current_state[px - 1][py - 1] == ".":
 			return count
 
-		## check its not same, the return none
-
+		## check its not same, the return count
 		## else it must be same so recurse count + 1
 		if self.current_state[px][py] != self.current_state[px - 1][py - 1]:
 			return count
@@ -184,12 +178,11 @@ class Game:
 		if px + 1 >= self.n or py + 1 >= self.n:
 			return count
 
-		## Check its a block
+		## Check its a block / empty spot
 		if self.current_state[px + 1][py + 1] == self.block_symbol or self.current_state[px + 1][py + 1] == ".":
 			return count
 
-		## check its not same, the return none
-
+		## check its not same, the return count
 		## else it must be same so recurse count + 1
 		if self.current_state[px][py] != self.current_state[px + 1][py + 1]:
 			return count
@@ -203,12 +196,11 @@ class Game:
 		if px + 1 >= self.n or py - 1 < 0:
 			return count
 
-		## Check its a block
+		## Check its a block / empty spot
 		if self.current_state[px + 1][py - 1] == self.block_symbol or self.current_state[px + 1][py - 1] == ".":
 			return count
 
-		## check its not same, the return none
-
+		## check its not same, the return count
 		## else it must be same so recurse count + 1
 		if self.current_state[px][py] != self.current_state[px + 1][py - 1]:
 			return count
@@ -277,10 +269,10 @@ class Game:
 		b = b/8
 
 		# weight heuristic a higher than b to promote blocking
-		return (a + b)/2
+		return (0.75*a + 0.25*b)/2
 
 
-	def minimax(self, max=False, depth=3):
+	def minimax(self, max=False, depth=5):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
 		# -1 - win for 'X'
@@ -303,7 +295,9 @@ class Game:
 			return (0, x, y)
 		if depth <= 0:
 			# Add Heuristic eval here?, constrain to [-1, 1]
-			return (self.evaluate_state() * flip, self.last_move[0], self.last_move[1])
+			# depending if we're min or max flip the value to be negative/positive
+			value = self.evaluate_state() * flip
+			return (value, x, y)
 
 		depth -= 1
 		for i in range(0, self.n):
@@ -394,6 +388,7 @@ class Game:
 			if algo == self.MINIMAX:
 				if self.player_turn == 'X':
 					(_, x, y) = self.minimax(max=False)
+				else:
 					(_, x, y) = self.minimax(max=True)
 			else:  # algo == self.ALPHABETA
 				if self.player_turn == 'X':
