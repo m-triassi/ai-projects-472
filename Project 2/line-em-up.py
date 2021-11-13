@@ -11,25 +11,40 @@ class Game:
 	AI = 3
 
 	def __init__(self, recommend=True):
-		self.initialize_game()
-		self.recommend = recommend
-
-	def initialize_game(self, n=7, b=None, s=3):
-		if b is None:
-			b = []
-
-		self.last_move = (-1, -1)
-		self.blocks = b
+		n, s = self.ask_conditions()
 		self.n = n
 		self.s = s
-		self.block_count = len(b)
+		self.initialize_game(n)
+		self.blocks = []
 		self.block_symbol = "🔲"
+		self.block_count = self.add_blocks()
+		self.recommend = recommend
+
+	def initialize_game(self, n, blocks=None):
+		self.last_move = (-1, -1)
 		self.current_state = np.full((n, n), ".").tolist()
-		for block in b:
-			self.current_state[block[0]][block[1]] = self.block_symbol
+		# We're replaying a game so add back the blocks
+		if blocks is not None:
+			for block in blocks:
+				self.current_state[block[0]][block[1]] = self.block_symbol
 
 		# Player X always plays first
 		self.player_turn = 'X'
+
+	def add_blocks(self):
+		block_count = int(input("How many blocks would you like to add?: "))
+		for block in range(0, block_count):
+			x = int(input(F"X coordinate for block {block}: "))
+			y = int(input(F"Y coordinate for block {block}: "))
+			self.current_state[x][y] = self.block_symbol
+			self.blocks.append((x, y))
+		return block_count
+
+	def ask_conditions(self):
+		n = int(input('How large should the board be? (n x n)[Default: 3] ') or 3)
+		s = int(input("How long should a winning line be?[Default: 3] ") or 3)
+
+		return (n, s)
 
 	def draw_board(self):
 		labels = range(0, self.n)
@@ -220,7 +235,7 @@ class Game:
 				print('The winner is O!')
 			elif self.result == '.':
 				print("It's a tie!")
-			self.initialize_game()
+			self.initialize_game(self.n, blocks=self.blocks)
 		return self.result
 
 	def input_move(self):
