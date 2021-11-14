@@ -527,7 +527,7 @@ class Game:
 
 
 	def play_scoreboard(self):
-		
+		body =0
 
 	def play(self, algo=None, player_x=None, player_o=None):
 		if algo == None:
