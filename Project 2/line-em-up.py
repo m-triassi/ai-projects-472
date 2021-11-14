@@ -593,6 +593,7 @@ class Game:
 		print(F'Average Recursive Depth: TODO')
 
 		print(F'Total moves: {self.num_moves}')
+		self.draw_board()
 
 
 
