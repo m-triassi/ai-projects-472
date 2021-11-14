@@ -322,14 +322,27 @@ class Game:
 	def evaluate_state(self):
 		x, y = self.last_move
 		# Heuristic evaluation
+		a = self.e1()
+		b = self.e2(x, y)
+		# Clamp heuristics to between 0 and 1
+		# This can only be as long as the win condition, thus divide by s
+		a = a/self.s
+		# There are only 8 spaces (maximum) around the current spot
+		b = b/8
+
+		# weight heuristic a higher than b to promote blocking
+		return (0.75*a + 0.25*b)/2
+
+	def e1(self):
 		# Heuristic 1: What is the count of the longest line making this line would make?
 		lines = []
 		lines.append(self.check_e(0, self.last_move) + self.check_w(0, self.last_move) + 1)
 		lines.append(self.check_n(0, self.last_move) + self.check_s(0, self.last_move) + 1)
 		lines.append(self.check_sw(0, self.last_move) + self.check_ne(0, self.last_move) + 1)
 		lines.append(self.check_se(0, self.last_move) + self.check_nw(0, self.last_move) + 1)
-		a = max(lines)/self.s
+		return max(lines)/self.s
 
+	def e2(self, x, y):
 		# Heuristic 2: How many free spaces are around the current move
 		# Rational is that check for non-empty spaces as to promote blocking
 		# very verbose, but pretty fast...
@@ -342,14 +355,7 @@ class Game:
 		b += x - 1 >= 0 and y + 1 < self.n and self.current_state[x - 1][y + 1] != "."
 		b += y - 1 >= 0 and x + 1 < self.n and self.current_state[x + 1][y - 1] != "."
 
-		# Clamp heuristics to between 0 and 1
-		# This can only be as long as the win condition, thus divide by s
-		a = a/self.s
-		# There are only 8 spaces (maximum) around the current spot
-		b = b/8
-
-		# weight heuristic a higher than b to promote blocking
-		return (0.75*a + 0.25*b)/2
+		return b
 
 	def minimax(self, max=False, depth=10, start_time=time.time()):
 		# Minimizing for 'X' and maximizing for 'O'
