@@ -2,7 +2,8 @@
 
 import time
 import numpy as np
-
+from contextlib import redirect_stdout
+from random import randint
 
 class Game:
 	MINIMAX = 0
@@ -34,11 +35,23 @@ class Game:
 
 	def add_blocks(self):
 		block_count = int(input("How many blocks would you like to add?: "))
-		for block in range(0, block_count):
-			x = int(input(F"X coordinate for block {block}: "))
-			y = int(input(F"Y coordinate for block {block}: "))
-			self.current_state[x][y] = self.block_symbol
-			self.blocks.append((x, y))
+		random_block = input("Would you like randomly placed blocks? [Y/n]: " or True) == "y"
+		if random_block:
+			for block in range(0, block_count):
+				x = randint(0, self.n - 1)
+				y = randint(0, self.n - 1)
+				# if the blocks are already present, keep generating a new pair until we find some that aren't
+				while (x ,y) in self.blocks:
+					x = randint(0, self.n - 1)
+					y = randint(0, self.n - 1)
+				self.current_state[x][y] = self.block_symbol
+				self.blocks.append((x, y))
+		else:
+			for block in range(0, block_count):
+				x = int(input(F"X coordinate for block {block}: "))
+				y = int(input(F"Y coordinate for block {block}: "))
+				self.current_state[x][y] = self.block_symbol
+				self.blocks.append((x, y))
 		return block_count
 
 	def ask_conditions(self):
@@ -288,7 +301,7 @@ class Game:
 		# weight heuristic a higher than b to promote blocking
 		return (0.75*a + 0.25*b)/2
 
-	def minimax(self, max=False, depth=4, start_time=time.time()):
+	def minimax(self, max=False, depth=10, start_time=time.time()):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
 		# -1 - win for 'X'
@@ -337,7 +350,7 @@ class Game:
 					self.current_state[i][j] = '.'
 		return (value, x, y)
 
-	def alphabeta(self, alpha=-2, beta=2, max=False, depth=3, start_time=time.time()):
+	def alphabeta(self, alpha=-2, beta=2, max=False, depth=10, start_time=time.time()):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
 		# -1 - win for 'X'
@@ -439,7 +452,10 @@ class Game:
 
 def main():
 	g = Game(recommend=True)
-	g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
+	with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
+		with redirect_stdout(f):
+			g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
+
 	g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
 
 
