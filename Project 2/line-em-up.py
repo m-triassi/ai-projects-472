@@ -28,10 +28,12 @@ class Game:
 		self.block_count = self.add_blocks()
 		self.recommend = recommend
 		# statistics
-		self.num_states_evald = 0
-		self.total_eval_time=0
-		self.depth_states_evald={}
-		self.current_depth_states_evald={}
+		self.num_moves = 0
+		self.current_num_states_evald = 0
+		self.total_num_states_evald = 0
+		self.total_eval_time = 0
+		self.total_depth_states_evald = {}
+		self.current_depth_states_evald = {}
 
 	def initialize_game(self, n, blocks=None):
 		self.last_move = (-1, -1)
@@ -306,10 +308,16 @@ class Game:
 		if self.result != None:
 			if self.result == 'X':
 				print('The winner is X!')
+				self.print_game_stats()
+
 			elif self.result == 'O':
 				print('The winner is O!')
+				self.print_game_stats()
+
 			elif self.result == '.':
 				print("It's a tie!")
+				self.print_game_stats()
+
 			self.initialize_game(self.n, blocks=self.blocks)
 		return self.result
 
@@ -377,7 +385,9 @@ class Game:
 		return (0.75 * a + 0.25 * b) / 2
 
 	def record_eval(self, depth):
-		self.num_states_evald += 1
+		self.current_num_states_evald += 1
+		self.total_num_states_evald += 1
+
 		current_depth=0
 		if self.player_turn == 'X':
 			current_depth = self.max_depth_x - depth
@@ -389,10 +399,10 @@ class Game:
 		else:
 			self.current_depth_states_evald[current_depth] += 1
 
-		if current_depth not in self.depth_states_evald:
-			self.depth_states_evald[current_depth] = 1
+		if current_depth not in self.total_depth_states_evald:
+			self.total_depth_states_evald[current_depth] = 1
 		else:
-			self.depth_states_evald[current_depth] += 1
+			self.total_depth_states_evald[current_depth] += 1
 
 
 	def minimax(self, max=False, depth=10, start_time=time.time()):
@@ -464,16 +474,20 @@ class Game:
 		y = None
 		result = self.is_end()
 		if result == 'X':
+			self.record_eval(depth)
 			return (-1, x, y)
 		elif result == 'O':
+			self.record_eval(depth)
 			return (1, x, y)
 		elif result == '.':
+			self.record_eval(depth)
 			return (0, x, y)
 		# remove some time from the original limit so the AI exits early / in time
 		if depth <= 0 or time.time() - start_time >= self.t - 0.01:
 			# Heuristic eval, constrained to [-1, 1]
 			# depending if we're min or max flip the value to be negative/positive
 			value = self.evaluate_state() * flip
+			self.record_eval(depth)
 			return (value, x, y)
 
 		depth -= 1
@@ -519,8 +533,9 @@ class Game:
 			if self.check_end():
 				return
 			start = time.time()
-			self.num_states_evald = 0
+			self.current_num_states_evald = 0
 			self.current_depth_states_evald = {}
+			self.num_moves +=1
 
 			if algo == self.MINIMAX:
 				if self.player_turn == 'X':
@@ -537,31 +552,48 @@ class Game:
 					self.player_turn == 'O' and player_o == self.HUMAN):
 				if self.recommend:
 					round_time = round(end - start, 7)
-					self.print_move_stats(round_time)
 					print(F'Recommended move: x = {x}, y = {y}')
+					self.print_move_stats(round_time)
 				(x, y) = self.input_move()
 			if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
 				round_time = round(end - start, 7)
 				if round_time > self.t:
 					print("AI took to long to evaluate next move and has lost.")
 					return
-				self.print_move_stats(round_time)
 				print(F'Player {self.player_turn} under AI control plays: x = {x}, y = {y}')
+				self.print_move_stats(round_time)
 
 			self.last_move = (x, y)
 			self.current_state[x][y] = self.player_turn
 			self.switch_player()
 
 	def print_move_stats(self, round_time):
+		self.total_eval_time += round_time
 		print(F'Evaluation time: {round_time}s')
-		print(F'States Evaluated: {self.num_states_evald}')
+		print(F'States Evaluated: {self.current_num_states_evald}')
 		print(F'States by Depth: {self.current_depth_states_evald}')
+
 		total_sum= 0
 		for k in self.current_depth_states_evald.keys():
 			total_sum += self.current_depth_states_evald[k]*k
 
-		print(F'Average Depth: {total_sum/self.num_states_evald}')
+		print(F'Average Depth: {total_sum/self.current_num_states_evald}s')
 		print(F'Average Recursive Depth: TODO')
+
+	def print_game_stats(self):
+		print(F'Avg Evaluation time: {self.total_eval_time/self.total_num_states_evald}s')
+		print(F'Total States Evaluated: {self.total_num_states_evald}')
+
+		sum_depth= 0
+		for k in self.total_depth_states_evald.keys():
+			sum_depth += self.total_depth_states_evald[k]*k
+		print(F'Total Average depth : {sum_depth/self.total_num_states_evald}')
+
+		print(F'Total States by Depth: {self.total_depth_states_evald}')
+		print(F'Average Recursive Depth: TODO')
+
+		print(F'Total moves: {self.num_moves}')
+
 
 
 def main():
