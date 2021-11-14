@@ -16,6 +16,9 @@ class Game:
 		self.n = n
 		self.s = s
 		self.t = t
+		# set some defaults that will be overwritten
+		self.max_depth_x = 5
+		self.max_depth_o = 5
 		self.initialize_game(n)
 		self.blocks = []
 		self.block_symbol = "🔲"
@@ -35,7 +38,15 @@ class Game:
 
 	def add_blocks(self):
 		block_count = int(input("How many blocks would you like to add?: "))
-		random_block = input("Would you like randomly placed blocks? [y/N]: " or False) == "y"
+		if block_count != 0:
+			random_block = input("Would you like randomly placed blocks? [y/N]: " or False) == "y"
+		else:
+			random_block = False
+
+		if block_count > 2*self.n:
+			block_count = 2*self.n
+			print(F"You've attempted to add to many blocks, setting blocks to {block_count} (maximum for this board size)")
+
 		if random_block:
 			for block in range(0, block_count):
 				x = randint(0, self.n - 1)
@@ -54,10 +65,31 @@ class Game:
 				self.blocks.append((x, y))
 		return block_count
 
+	def decide_depth(self, player_x, player_o):
+		if player_x == self.AI:
+			self.max_depth_x = int(input("How many rounds ahead should player X look (Max search depth)? [Default: 5]: ") or 5)
+		if player_o == self.AI:
+			self.max_depth_o = int(input("How many rounds ahead should player O look (Max search depth)? [Default: 5]: ") or 5)
+
+
 	def ask_conditions(self):
 		n = int(input('How large should the board be? (n x n)[Default: 3]: ') or 3)
 		s = int(input("How long should a winning line be?[Default: 3]: ") or 3)
 		t = int(input("How many seconds should the AI have to evaluate the best move?[Default: 5]: ") or 5)
+
+		if n > 10:
+			n = 10
+			print(F"You've chosen too large of a game board, setting to {n}")
+		elif n < 3:
+			n = 3
+			print(F"You've chosen too small of a game board, setting to {n}")
+
+		if s > 10:
+			s = 10
+			print(F"You've chosen too large of a win line, setting to {s}")
+		elif s < 3:
+			s = 3
+			print(F"You've chosen too small of a win line, setting to {s}")
 
 		return (n, s, t)
 
@@ -282,6 +314,7 @@ class Game:
 		a = max(lines)/self.s
 
 		# Heuristic 2: How many free spaces are around the current move
+		# Rational is that check for non-empty spaces as to promote blocking
 		# very verbose, but pretty fast...
 		b = x + 1 < self.n and self.current_state[x + 1][y] != "."
 		b += x - 1 >= 0 and self.current_state[x - 1][y] != "."
@@ -323,7 +356,7 @@ class Game:
 		elif result == '.':
 			return (0, x, y)
 		# remove some time from the original limit so the AI exits early / in time
-		if depth <= 0 or time.time() - start_time >= self.t - 0.001:
+		if depth <= 0 or time.time() - start_time >= self.t - 0.01:
 			# Heuristic eval, constrained to [-1, 1]
 			# depending if we're min or max flip the value to be negative/positive
 			value = self.evaluate_state() * flip
@@ -416,6 +449,7 @@ class Game:
 			player_x = self.HUMAN
 		if player_o == None:
 			player_o = self.HUMAN
+		self.decide_depth(player_x, player_o)
 		while True:
 			self.draw_board()
 			if self.check_end():
@@ -423,14 +457,14 @@ class Game:
 			start = time.time()
 			if algo == self.MINIMAX:
 				if self.player_turn == 'X':
-					(_, x, y) = self.minimax(max=False, start_time=start)
+					(_, x, y) = self.minimax(max=False, start_time=start, depth=self.max_depth_x)
 				else:
-					(_, x, y) = self.minimax(max=True, start_time=start)
+					(_, x, y) = self.minimax(max=True, start_time=start, depth=self.max_depth_o)
 			else:  # algo == self.ALPHABETA
 				if self.player_turn == 'X':
-					(m, x, y) = self.alphabeta(max=False, start_time=start)
+					(m, x, y) = self.alphabeta(max=False, start_time=start, depth=self.max_depth_x)
 				else:
-					(m, x, y) = self.alphabeta(max=True, start_time=start)
+					(m, x, y) = self.alphabeta(max=True, start_time=start, depth=self.max_depth_o)
 			end = time.time()
 			if (self.player_turn == 'X' and player_x == self.HUMAN) or (
 					self.player_turn == 'O' and player_o == self.HUMAN):
@@ -449,7 +483,6 @@ class Game:
 			self.current_state[x][y] = self.player_turn
 			self.switch_player()
 
-
 def main():
 	g = Game(recommend=True)
 	# with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
@@ -457,8 +490,7 @@ def main():
 	# 		g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
 
 	g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
-
-	# g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
+	g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.AI)
 
 
 if __name__ == "__main__":
