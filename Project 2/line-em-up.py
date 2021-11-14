@@ -11,9 +11,10 @@ class Game:
 	AI = 3
 
 	def __init__(self, recommend=True):
-		n, s = self.ask_conditions()
+		n, s, t = self.ask_conditions()
 		self.n = n
 		self.s = s
+		self.t = t
 		self.initialize_game(n)
 		self.blocks = []
 		self.block_symbol = "🔲"
@@ -41,10 +42,11 @@ class Game:
 		return block_count
 
 	def ask_conditions(self):
-		n = int(input('How large should the board be? (n x n)[Default: 3] ') or 3)
-		s = int(input("How long should a winning line be?[Default: 3] ") or 3)
+		n = int(input('How large should the board be? (n x n)[Default: 3]: ') or 3)
+		s = int(input("How long should a winning line be?[Default: 3]: ") or 3)
+		t = int(input("How many seconds should the AI have to evaluate the best move?[Default: 5]: ") or 5)
 
-		return (n, s)
+		return (n, s, t)
 
 	def draw_board(self):
 		labels = range(0, self.n)
@@ -286,8 +288,7 @@ class Game:
 		# weight heuristic a higher than b to promote blocking
 		return (0.75*a + 0.25*b)/2
 
-
-	def minimax(self, max=False, depth=5):
+	def minimax(self, max=False, depth=4, start_time=time.time()):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
 		# -1 - win for 'X'
@@ -308,8 +309,9 @@ class Game:
 			return (1, x, y)
 		elif result == '.':
 			return (0, x, y)
-		if depth <= 0:
-			# Add Heuristic eval here?, constrain to [-1, 1]
+		# remove some time from the original limit so the AI exits early / in time
+		if depth <= 0 or time.time() - start_time >= self.t - 0.001:
+			# Heuristic eval, constrained to [-1, 1]
 			# depending if we're min or max flip the value to be negative/positive
 			value = self.evaluate_state() * flip
 			return (value, x, y)
@@ -320,14 +322,14 @@ class Game:
 				if self.current_state[i][j] == '.':
 					if max:
 						self.current_state[i][j] = 'O'
-						(v, _, _) = self.minimax(max=False, depth=depth)
+						(v, _, _) = self.minimax(max=False, depth=depth, start_time=start_time)
 						if v > value:
 							value = v
 							x = i
 							y = j
 					else:
 						self.current_state[i][j] = 'X'
-						(v, _, _) = self.minimax(max=True, depth=depth)
+						(v, _, _) = self.minimax(max=True, depth=depth, start_time=start_time)
 						if v < value:
 							value = v
 							x = i
@@ -335,7 +337,7 @@ class Game:
 					self.current_state[i][j] = '.'
 		return (value, x, y)
 
-	def alphabeta(self, alpha=-2, beta=2, max=False, depth=3):
+	def alphabeta(self, alpha=-2, beta=2, max=False, depth=3, start_time=time.time()):
 		# Minimizing for 'X' and maximizing for 'O'
 		# Possible values are:
 		# -1 - win for 'X'
@@ -343,7 +345,9 @@ class Game:
 		# 1  - loss for 'X'
 		# We're initially setting it to 2 or -2 as worse than the worst case:
 		value = 2
+		flip = 1
 		if max:
+			flip = -1
 			value = -2
 		x = None
 		y = None
@@ -354,8 +358,12 @@ class Game:
 			return (1, x, y)
 		elif result == '.':
 			return (0, x, y)
-		if depth <= 0:
-			return (0, x, y)
+		# remove some time from the original limit so the AI exits early / in time
+		if depth <= 0 or time.time() - start_time >= self.t - 0.001:
+			# Heuristic eval, constrained to [-1, 1]
+			# depending if we're min or max flip the value to be negative/positive
+			value = self.evaluate_state() * flip
+			return (value, x, y)
 
 		depth -= 1
 		for i in range(0, self.n):
@@ -363,14 +371,14 @@ class Game:
 				if self.current_state[i][j] == '.':
 					if max:
 						self.current_state[i][j] = 'O'
-						(v, _, _) = self.alphabeta(alpha, beta, max=False, depth=depth)
+						(v, _, _) = self.alphabeta(alpha, beta, max=False, depth=depth, start_time=start_time)
 						if v > value:
 							value = v
 							x = i
 							y = j
 					else:
 						self.current_state[i][j] = 'X'
-						(v, _, _) = self.alphabeta(alpha, beta, max=True, depth=depth)
+						(v, _, _) = self.alphabeta(alpha, beta, max=True, depth=depth, start_time=start_time)
 						if v < value:
 							value = v
 							x = i
@@ -402,14 +410,14 @@ class Game:
 			start = time.time()
 			if algo == self.MINIMAX:
 				if self.player_turn == 'X':
-					(_, x, y) = self.minimax(max=False)
+					(_, x, y) = self.minimax(max=False, start_time=start)
 				else:
-					(_, x, y) = self.minimax(max=True)
+					(_, x, y) = self.minimax(max=True, start_time=start)
 			else:  # algo == self.ALPHABETA
 				if self.player_turn == 'X':
-					(m, x, y) = self.alphabeta(max=False)
+					(m, x, y) = self.alphabeta(max=False, start_time=start)
 				else:
-					(m, x, y) = self.alphabeta(max=True)
+					(m, x, y) = self.alphabeta(max=True, start_time=start)
 			end = time.time()
 			if (self.player_turn == 'X' and player_x == self.HUMAN) or (
 					self.player_turn == 'O' and player_o == self.HUMAN):
@@ -418,7 +426,11 @@ class Game:
 					print(F'Recommended move: x = {x}, y = {y}')
 				(x, y) = self.input_move()
 			if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
-				print(F'Evaluation time: {round(end - start, 7)}s')
+				round_time = round(end - start, 7)
+				if round_time > self.t:
+					print("AI took to long to evaluate next move and has lost.")
+					return
+				print(F'Evaluation time: {round_time}s')
 				print(F'Player {self.player_turn} under AI control plays: x = {x}, y = {y}')
 			self.last_move = (x, y)
 			self.current_state[x][y] = self.player_turn
