@@ -20,6 +20,8 @@ class Game:
 		self.max_depth_x = 5
 		self.max_depth_o = 5
 		self.a = self.MINIMAX
+		self.e_x = "e12"
+		self.e_o = "e12"
 		self.initialize_game(n)
 		self.blocks = []
 		self.block_symbol = "🔲"
@@ -38,7 +40,7 @@ class Game:
 		self.player_turn = 'X'
 
 	def add_blocks(self):
-		block_count = int(input("How many blocks would you like to add?: "))
+		block_count = int(input("How many blocks would you like to add?[Default: 0]: ") or 0)
 		if block_count != 0:
 			random_block = input("Would you like randomly placed blocks? [y/N]: " or False) == "y"
 		else:
@@ -78,8 +80,12 @@ class Game:
 
 		if player_x == self.AI:
 			self.max_depth_x = int(input("How many rounds ahead should player X look (Max search depth)? [Default: 5]: ") or 5)
+			self.e_x = input('Which heuristic should be used to evaluate the board? [e1 / e2 / e12]: ')
+			self.e_x = self.e_x if self.e_x in ["e1", "e2", "e12"] else "e12"
 		if player_o == self.AI:
 			self.max_depth_o = int(input("How many rounds ahead should player O look (Max search depth)? [Default: 5]: ") or 5)
+			self.e_o = input('Which heuristic should be used to evaluate the board? [e1 / e2 / e12]: ')
+			self.e_o = self.e_x if self.e_x in ["e1", "e2", "e12"] else "e12"
 
 	def show_game_conditions(self, player_x, player_o):
 		x_type = F"AI d={self.max_depth_x} a={bool(self.a)}" if player_x == self.AI else "Player"
@@ -320,18 +326,12 @@ class Game:
 		return self.player_turn
 
 	def evaluate_state(self):
-		x, y = self.last_move
-		# Heuristic evaluation
-		a = self.e1()
-		b = self.e2(x, y)
-		# Clamp heuristics to between 0 and 1
-		# This can only be as long as the win condition, thus divide by s
-		a = a/self.s
-		# There are only 8 spaces (maximum) around the current spot
-		b = b/8
+		if self.player_turn == "X":
+			heuristic = getattr(self, self.e_x)
+		else:
+			heuristic = getattr(self, self.e_o)
 
-		# weight heuristic a higher than b to promote blocking
-		return (0.75*a + 0.25*b)/2
+		return heuristic()
 
 	def e1(self):
 		# Heuristic 1: What is the count of the longest line making this line would make?
@@ -356,6 +356,21 @@ class Game:
 		b += y - 1 >= 0 and x + 1 < self.n and self.current_state[x + 1][y - 1] != "."
 
 		return b
+
+	def e12(self):
+		print("called e12")
+		x, y = self.last_move
+		# Heuristic evaluation
+		a = self.e1()
+		b = self.e2(x, y)
+		# Clamp heuristics to between 0 and 1
+		# This can only be as long as the win condition, thus divide by s
+		a = a / self.s
+		# There are only 8 spaces (maximum) around the current spot
+		b = b / 8
+
+		# weight heuristic a higher than b to promote blocking
+		return (0.75 * a + 0.25 * b) / 2
 
 	def minimax(self, max=False, depth=10, start_time=time.time()):
 		# Minimizing for 'X' and maximizing for 'O'
@@ -507,12 +522,12 @@ class Game:
 
 def main():
 	g = Game(recommend=True)
-	player_x, player_o = g.decide_player()
-	g.decide_depth(player_x, player_o)
-	g.show_game_conditions(player_x, player_o)
-	with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
-		with redirect_stdout(f):
-			g.play(algo=g.a, player_x=player_x, player_o=player_o)
+	# player_x, player_o = g.decide_player()
+	# g.decide_depth(player_x, player_o)
+	# g.show_game_conditions(player_x, player_o)
+	# with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
+	# 	with redirect_stdout(f):
+	# 		g.play(algo=g.a, player_x=player_x, player_o=player_o)
 
 	player_x, player_o = g.decide_player()
 	g.decide_depth(player_x, player_o)
