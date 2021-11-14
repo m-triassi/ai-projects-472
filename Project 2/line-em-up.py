@@ -35,7 +35,7 @@ class Game:
 
 	def add_blocks(self):
 		block_count = int(input("How many blocks would you like to add?: "))
-		random_block = input("Would you like randomly placed blocks? [Y/n]: " or True) == "y"
+		random_block = input("Would you like randomly placed blocks? [y/N]: " or False) == "y"
 		if random_block:
 			for block in range(0, block_count):
 				x = randint(0, self.n - 1)
@@ -372,7 +372,7 @@ class Game:
 		elif result == '.':
 			return (0, x, y)
 		# remove some time from the original limit so the AI exits early / in time
-		if depth <= 0 or time.time() - start_time >= self.t - 0.001:
+		if depth <= 0 or time.time() - start_time >= self.t - 0.01:
 			# Heuristic eval, constrained to [-1, 1]
 			# depending if we're min or max flip the value to be negative/positive
 			value = self.evaluate_state() * flip
@@ -452,11 +452,13 @@ class Game:
 
 def main():
 	g = Game(recommend=True)
-	with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
-		with redirect_stdout(f):
-			g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
+	# with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
+	# 	with redirect_stdout(f):
+	# 		g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
 
-	g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
+	g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
+
+	# g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.HUMAN)
 
 
 if __name__ == "__main__":
