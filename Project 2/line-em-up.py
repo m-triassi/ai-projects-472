@@ -19,6 +19,7 @@ class Game:
 		# set some defaults that will be overwritten
 		self.max_depth_x = 5
 		self.max_depth_o = 5
+		self.a = self.MINIMAX
 		self.initialize_game(n)
 		self.blocks = []
 		self.block_symbol = "🔲"
@@ -65,12 +66,29 @@ class Game:
 				self.blocks.append((x, y))
 		return block_count
 
-	def decide_depth(self, player_x, player_o):
+	def decide_player(self):
+		player_x = int(input("Who should control Player X [human = 2/ AI = 3]: ") or 3)
+		player_o = int(input("Who should control Player O [human = 2/ AI = 3]: ") or 3)
+
+		return player_x, player_o
+
+	def decide_depth(self, player_x=None, player_o=None):
+		if player_x == self.AI or player_o == self.AI:
+			self.a = int(int(input("What algorithm should the AI use? [0=minimax / 1=alphabeta]: ")) in [self.ALPHABETA])
+
 		if player_x == self.AI:
 			self.max_depth_x = int(input("How many rounds ahead should player X look (Max search depth)? [Default: 5]: ") or 5)
 		if player_o == self.AI:
 			self.max_depth_o = int(input("How many rounds ahead should player O look (Max search depth)? [Default: 5]: ") or 5)
 
+	def show_game_conditions(self, player_x, player_o):
+		x_type = F"AI d={self.max_depth_x} a={bool(self.a)}" if player_x == self.AI else "Player"
+		o_type = F"AI d={self.max_depth_o} a={bool(self.a)}" if player_o == self.AI else "Player"
+		print(F"n={self.n} b={self.block_count} s={self.s} t={self.t}")
+		print(F"blocks={self.blocks}")
+		print()
+		print(F"Player 1: {x_type}")
+		print(F"Player 2: {o_type}")
 
 	def ask_conditions(self):
 		n = int(input('How large should the board be? (n x n)[Default: 3]: ') or 3)
@@ -271,7 +289,6 @@ class Game:
 				return count
 			return self.check_sw(count + 1, (px + 1, py - 1))
 
-
 	def check_end(self):
 		self.result = self.is_end()
 		# Printing the appropriate message if the game has ended
@@ -449,7 +466,6 @@ class Game:
 			player_x = self.HUMAN
 		if player_o == None:
 			player_o = self.HUMAN
-		self.decide_depth(player_x, player_o)
 		while True:
 			self.draw_board()
 			if self.check_end():
@@ -485,12 +501,22 @@ class Game:
 
 def main():
 	g = Game(recommend=True)
-	# with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
-	# 	with redirect_stdout(f):
-	# 		g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
+	player_x, player_o = g.decide_player()
+	g.decide_depth(player_x, player_o)
+	g.show_game_conditions(player_x, player_o)
+	with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
+		with redirect_stdout(f):
+			g.play(algo=g.a, player_x=player_x, player_o=player_o)
 
-	g.play(algo=Game.ALPHABETA, player_x=Game.AI, player_o=Game.AI)
-	g.play(algo=Game.MINIMAX, player_x=Game.AI, player_o=Game.AI)
+	player_x, player_o = g.decide_player()
+	g.decide_depth(player_x, player_o)
+	g.show_game_conditions(player_x, player_o)
+	g.play(algo=g.a, player_x=player_x, player_o=player_o)
+
+	# player_x, player_o = g.decide_player()
+	# g.decide_depth(player_x, player_o)
+	# g.show_game_conditions(player_x, player_o)
+	# g.play(algo=g.a, player_x=player_x, player_o=player_o)
 
 
 if __name__ == "__main__":
