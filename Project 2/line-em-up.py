@@ -371,7 +371,7 @@ class Game:
 
 		return b
 
-	def e12(self):
+	def e12(self, x, y):
 		x, y = self.last_move
 		# Heuristic evaluation
 		a = self.e1(x, y)
