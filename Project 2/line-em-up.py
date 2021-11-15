@@ -92,11 +92,11 @@ class Game:
 		if player_o == self.AI:
 			self.max_depth_o = int(input("How many rounds ahead should player O look (Max search depth)? [Default: 5]: ") or 5)
 			self.e_o = input('Which heuristic should be used to evaluate the board? [e1 / e2 / e12]: ')
-			self.e_o = self.e_x if self.e_x in ["e1", "e2", "e12"] else "e12"
+			self.e_o = self.e_o if self.e_o in ["e1", "e2", "e12"] else "e12"
 
 	def show_game_conditions(self, player_x, player_o):
-		x_type = F"AI d={self.max_depth_x} a={bool(self.a)}" if player_x == self.AI else "Player"
-		o_type = F"AI d={self.max_depth_o} a={bool(self.a)}" if player_o == self.AI else "Player"
+		x_type = F"AI d={self.max_depth_x} a={bool(self.a)} {self.e_x}" if player_x == self.AI else "Player"
+		o_type = F"AI d={self.max_depth_o} a={bool(self.a)} {self.e_o}" if player_o == self.AI else "Player"
 		print(F"n={self.n} b={self.block_count} s={self.s} t={self.t}")
 		print(F"blocks={self.blocks}")
 		print()
@@ -344,9 +344,10 @@ class Game:
 		else:
 			heuristic = getattr(self, self.e_o)
 
-		return heuristic()
+		x, y = self.last_move
+		return heuristic(x, y)
 
-	def e1(self):
+	def e1(self, x, y):
 		# Heuristic 1: What is the count of the longest line making this line would make?
 		lines = []
 		lines.append(self.check_e(0, self.last_move) + self.check_w(0, self.last_move) + 1)
@@ -373,7 +374,7 @@ class Game:
 	def e12(self):
 		x, y = self.last_move
 		# Heuristic evaluation
-		a = self.e1()
+		a = self.e1(x, y)
 		b = self.e2(x, y)
 		# Clamp heuristics to between 0 and 1
 		# This can only be as long as the win condition, thus divide by s
@@ -413,10 +414,10 @@ class Game:
 		# 1  - loss for 'X'
 		# We're initially setting it to 2 or -2 as worse than the worst case:
 		value = 2
-		flip = 1
+		flip = -1
 		if max:
 			value = -2
-			flip = -1
+			flip = 1
 		x = None
 		y = None
 		result = self.is_end()
@@ -430,7 +431,8 @@ class Game:
 			self.record_eval(depth)
 			return (0, x, y)
 		# remove some time from the original limit so the AI exits early / in time
-		if depth <= 0 or time.time() - start_time >= self.t - 0.01:
+		# if depth <= 0 or time.time() - start_time >= self.t - 0.01:
+		if depth <= 0:
 			# Heuristic eval, constrained to [-1, 1]
 			# depending if we're min or max flip the value to be negative/positive
 			value = self.evaluate_state() * flip
@@ -466,9 +468,9 @@ class Game:
 		# 1  - loss for 'X'
 		# We're initially setting it to 2 or -2 as worse than the worst case:
 		value = 2
-		flip = 1
+		flip = -1
 		if max:
-			flip = -1
+			flip = 1
 			value = -2
 		x = None
 		y = None
@@ -557,9 +559,9 @@ class Game:
 				(x, y) = self.input_move()
 			if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
 				round_time = round(end - start, 7)
-				if round_time > self.t:
-					print("AI took to long to evaluate next move and has lost.")
-					return
+				# if round_time > self.t:
+				# 	print("AI took to long to evaluate next move and has lost.")
+				# 	return
 				print(F'Player {self.player_turn} under AI control plays: x = {x}, y = {y}')
 				self.print_move_stats(round_time)
 
@@ -599,17 +601,13 @@ class Game:
 
 def main():
 	g = Game(recommend=True)
-	# player_x, player_o = g.decide_player()
-	# g.decide_depth(player_x, player_o)
-	# g.show_game_conditions(player_x, player_o)
-	# with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
-	# 	with redirect_stdout(f):
-	# 		g.play(algo=g.a, player_x=player_x, player_o=player_o)
 
 	player_x, player_o = g.decide_player()
 	g.decide_depth(player_x, player_o)
-	g.show_game_conditions(player_x, player_o)
-	g.play(algo=g.a, player_x=player_x, player_o=player_o)
+	with open(F"traces/gameTrace_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
+		with redirect_stdout(f):
+			g.show_game_conditions(player_x, player_o)
+			g.play(algo=g.a, player_x=player_x, player_o=player_o)
 
 	# player_x, player_o = g.decide_player()
 	# g.decide_depth(player_x, player_o)
