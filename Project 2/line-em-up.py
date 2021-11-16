@@ -431,8 +431,7 @@ class Game:
 			self.record_eval(depth)
 			return (0, x, y)
 		# remove some time from the original limit so the AI exits early / in time
-		# if depth <= 0 or time.time() - start_time >= self.t - 0.01:
-		if depth <= 0:
+		if depth <= 0 or time.time() - start_time >= self.t - 0.01:
 			# Heuristic eval, constrained to [-1, 1]
 			# depending if we're min or max flip the value to be negative/positive
 			value = self.evaluate_state() * flip
@@ -559,9 +558,9 @@ class Game:
 				(x, y) = self.input_move()
 			if (self.player_turn == 'X' and player_x == self.AI) or (self.player_turn == 'O' and player_o == self.AI):
 				round_time = round(end - start, 7)
-				# if round_time > self.t:
-				# 	print("AI took to long to evaluate next move and has lost.")
-				# 	return
+				if round_time > self.t:
+					print("AI took to long to evaluate next move and has lost.")
+					return
 				print(F'Player {self.player_turn} under AI control plays: x = {x}, y = {y}')
 				self.print_move_stats(round_time)
 
