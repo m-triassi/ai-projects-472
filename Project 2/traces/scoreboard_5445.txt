@@ -1,0 +1,15 @@
+n=5 b=4 s=4 t=5
+blocks=[(2, 0), (4, 0), (3, 4), (0, 0)]
+
+Player 1: AI d=6 a=True e1
+Player 2: AI d=6 a=True e2
+Start: e1 goes first
+Switch it & flip it: e2 goes first
+Num games 10
+E1 vs E2 vs ties:  0 : 0 : 10
+Avg Evaluation time: 4.635546272906008e-06s
+Total States Evaluated: 857035
+Total Average depth : 5.9992124008937795
+Total States by Depth: {6: 856670, 4: 220, 5: 110, 3: 20, 2: 10, 1: 5}
+Average Recursive Depth: TODO
+Total moves: 125
