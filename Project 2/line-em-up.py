@@ -414,10 +414,10 @@ class Game:
 		# 1  - loss for 'X'
 		# We're initially setting it to 2 or -2 as worse than the worst case:
 		value = 2
-		flip = -1
+		flip = 1
 		if max:
 			value = -2
-			flip = 1
+			flip = -1
 		x = None
 		y = None
 		result = self.is_end()
@@ -467,9 +467,9 @@ class Game:
 		# 1  - loss for 'X'
 		# We're initially setting it to 2 or -2 as worse than the worst case:
 		value = 2
-		flip = -1
+		flip = 1
 		if max:
-			flip = 1
+			flip = -1
 			value = -2
 		x = None
 		y = None
