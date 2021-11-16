@@ -601,9 +601,9 @@ class Game:
 def main():
 	g = Game(recommend=True)
 	games_played = 5 #int(int(input("How many games: ")) / 2)
-	d1 = int(input("How deep: "))
-	d2 = int(input("Balls deep: "))
-	alog =int(input("Algorithm [0,1]: ") or 1)
+	d1 = int(input("d1: "))
+	d2 = int(input("d2: "))
+	alog =int(input("Algorithm [minimax: 0 or Alphabeta: 1]: ") or 1)
 	with open(F"traces/scoreboard_{g.n}{g.block_count}{g.s}{g.t}.txt", 'w') as f:
 		with redirect_stdout(f):
 
