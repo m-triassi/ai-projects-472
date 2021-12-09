@@ -1,0 +1,120 @@
+76.	fashion
+a.	ration
+b.	fathom
+c.	craze
+d.	manner
+d
+71.	percentage
+a.	volume
+b.	sample
+c.	proportion
+d.	profit
+c
+66.	primarily
+a.	occasionally
+b.	cautiously
+c.	consistently
+d.	chiefly
+d
+32.	deftly
+a.	skillfully
+b.	prudently
+c.	occasionally
+d.	humorously
+a
+16.	showed
+a.	demonstrated
+b.	published
+c.	repeated
+d.	postponed
+a
+17.	constantly
+a.	instantly
+b.	continually
+c.	rapidly
+d.	accidentally
+b
+41.	hastily
+a.	hurriedly
+b.	shrewdly
+c.	habitually
+d.	chronologically
+a
+1.	enormously
+a.	appropriately
+b.	uniquely
+c.	tremendously
+d.	decidedly
+c
+8.	consumed
+a.	bred
+b.	caught
+c.	eaten
+d.	supplied
+c
+12.	solitary
+a.	alert
+b.	restless
+c.	alone
+d.	fearless
+c
+3.	haphazardly
+a.	dangerously
+b.	densely
+c.	randomly
+d.	linearly
+c
+39.	hind
+a.	curved
+b.	muscular
+c.	hairy
+d.	rear
+d
+56.	wildly
+a.	distinctively
+b.	mysteriously
+c.	abruptly
+d.	furiously
+d
+28.	arranged
+a.	planned
+b.	explained
+c.	studied
+d.	discarded
+a
+58.	command
+a.	observation
+b.	love
+c.	awareness
+d.	mastery
+d
+30.	showy
+a.	striking
+b.	prickly
+c.	entertaining
+d.	incidental
+a
+74.	figure
+a.	list
+b.	solve
+c.	divide
+d.	express
+b
+5.	zenith
+a.	completion
+b.	pinnacle
+c.	outset
+d.	decline
+b
+72.	terminated
+a.	ended
+b.	posed
+c.	postponed
+d.	evaluated
+a
+13.	hasten
+a.	permit
+b.	determine
+c.	accelerate
+d.	accompany
+c
